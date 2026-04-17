@@ -1,51 +1,47 @@
 const fs = require("fs");
+const https = require("https");
 
 const API_KEY = process.env.YT_KEY;
 const CHANNEL_ID = "UCQKYoj8mNNJw4XQ6xB2gFkA";
 
-async function fetchJSON(url) {
-  const res = await fetch(url);
+function getJSON(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = "";
 
-  const text = await res.text();
+      res.on("data", chunk => data += chunk);
 
-  // 🔥 THIS IS THE IMPORTANT PART
-  if (!res.ok) {
-    throw new Error("HTTP " + res.status + " - " + text);
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    throw new Error("Invalid JSON: " + text);
-  }
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error("Invalid JSON: " + data));
+        }
+      });
+    }).on("error", reject);
+  });
 }
 
 async function run() {
   try {
     console.log("Starting sitemap build...");
 
-    if (!API_KEY) {
-      throw new Error("Missing YT_KEY environment variable");
-    }
+    if (!API_KEY) throw new Error("Missing YT_KEY secret");
 
-    const channel = await fetchJSON(
+    const channel = await getJSON(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`
     );
 
     const uploads =
       channel.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
 
-    if (!uploads) {
-      throw new Error("Could not find uploads playlist");
-    }
+    if (!uploads) throw new Error("Uploads playlist not found");
 
-    const playlist = await fetchJSON(
+    const playlist = await getJSON(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploads}&maxResults=30&key=${API_KEY}`
     );
 
-    if (!playlist.items) {
-      throw new Error("No playlist items returned");
-    }
+    if (!playlist.items) throw new Error("No playlist items");
 
     const urls = playlist.items.map(item => {
       const id = item.snippet.resourceId.videoId;
@@ -70,7 +66,7 @@ ${urls.join("\n")}
 
     console.log("Sitemap generated successfully");
   } catch (err) {
-    console.error("🔥 ERROR:", err.message);
+    console.error("ERROR:", err.message);
     process.exit(1);
   }
 }
