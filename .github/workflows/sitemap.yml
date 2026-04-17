@@ -16,8 +16,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run sitemap generator
-        run: node build-sitemap.js
+      - run: node build-sitemap.js
         env:
           YT_KEY: ${{ secrets.YT_KEY }}
 
