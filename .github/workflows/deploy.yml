@@ -1,4 +1,4 @@
-name: Deploy to Namecheap
+name: Deploy to Namecheap FTP
 
 on:
   push:
@@ -15,12 +15,11 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install lftp -y
 
-      - name: Upload via FTP (DEBUG MODE)
+      - name: Upload via FTP
         run: |
-          lftp -d -e "
+          lftp -e "
           set ftp:ssl-allow no;
-          set ftp:passive-mode on;
-          open -u ${{ secrets.SFTP_USER }},${{ secrets.SFTP_PASS }} sftp://${{ secrets.SFTP_HOST }}:${{ secrets.SFTP_PORT }};
-          ls;
+          open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ftp://${{ secrets.FTP_HOST }};
+          mirror -R . /public_html --ignore-time --parallel=10;
           bye
           "
