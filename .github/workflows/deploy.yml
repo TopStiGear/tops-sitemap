@@ -22,6 +22,6 @@ jobs:
           set ftp:ssl-allow no;
           set ftp:passive-mode on;
           open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ftp://${{ secrets.FTP_HOST }}:21;
-          mirror -R . /public_html --ignore-time --parallel=5;
+          mirror -R . / --ignore-time --parallel=5;
           bye
           "
