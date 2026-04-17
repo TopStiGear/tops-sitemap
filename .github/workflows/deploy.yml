@@ -1,0 +1,25 @@
+name: Deploy to Namecheap
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lftp
+        run: sudo apt-get install lftp -y
+
+      - name: Upload to Namecheap via SFTP
+        run: |
+          lftp -e "
+          set sftp:auto-confirm yes;
+          open -u ${{ secrets.SFTP_USER }},${{ secrets.SFTP_PASS }} sftp://${{ secrets.SFTP_HOST }}:${{ secrets.SFTP_PORT }};
+          mirror -R . /public_html --ignore-time --parallel=10;
+          bye
+          "
