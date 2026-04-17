@@ -10,18 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install lftp -y
 
-      - name: FTP connection test
+      - name: Deploy via FTP
         run: |
           lftp -d -e "
           set ftp:ssl-allow no;
           set ftp:passive-mode on;
-          open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ftp://${{ secrets.FTP_HOST }};
-          pwd;
-          ls;
+          open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ftp://${{ secrets.FTP_HOST }}:21;
+          mirror -R . /public_html --ignore-time --parallel=5;
           bye
           "
