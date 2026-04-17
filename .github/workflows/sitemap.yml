@@ -10,19 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - run: node build-sitemap.js
+      - name: Run sitemap generator
+        run: node build-sitemap.js
         env:
           YT_KEY: ${{ secrets.YT_KEY }}
 
-      - run: |
+      - name: Commit sitemap
+        run: |
           git config user.name "bot"
           git config user.email "bot@github.com"
           git add sitemap.xml
-          git commit -m "auto sitemap update"
+          git commit -m "auto sitemap update" || echo "no changes"
           git push
