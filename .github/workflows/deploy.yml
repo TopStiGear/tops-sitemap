@@ -19,6 +19,7 @@ jobs:
         run: |
           lftp -e "
           set ftp:ssl-allow no;
+          set ftp:passive-mode on;
           open -u ${{ secrets.SFTP_USER }},${{ secrets.SFTP_PASS }} sftp://${{ secrets.SFTP_HOST }}:${{ secrets.SFTP_PORT }};
           mirror -R . /public_html --ignore-time --parallel=10;
           bye
