@@ -15,11 +15,16 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install lftp -y
 
-      - name: Upload via FTP
-        run: |
-          lftp -e "
-          set ftp:ssl-allow no;
-          open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ftp://${{ secrets.FTP_HOST }};
-          mirror -R . /public_html --ignore-time --parallel=10;
-          bye
-          "
+    - name: FTP connection test
+      run: |
+        sudo apt-get update
+        sudo apt-get install lftp -y
+
+        lftp -d -e "
+        set ftp:ssl-allow no;
+        set ftp:passive-mode on;
+        open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASS }} ftp://${{ secrets.FTP_HOST }};
+        pwd;
+        ls;
+        bye
+        "
