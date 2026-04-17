@@ -4,7 +4,7 @@ const https = require("https");
 const API_KEY = process.env.YT_KEY;
 const CHANNEL_ID = "UCQKYoj8mNNJw4XQ6xB2gFkA";
 
-function getJSON(url) {
+function fetchJSON(url) {
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
       let data = "";
@@ -24,24 +24,18 @@ function getJSON(url) {
 
 async function run() {
   try {
-    console.log("Starting sitemap build...");
+    console.log("Building sitemap...");
 
-    if (!API_KEY) throw new Error("Missing YT_KEY secret");
-
-    const channel = await getJSON(
+    const channel = await fetchJSON(
       `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`
     );
 
     const uploads =
-      channel.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+      channel.items[0].contentDetails.relatedPlaylists.uploads;
 
-    if (!uploads) throw new Error("Uploads playlist not found");
-
-    const playlist = await getJSON(
+    const playlist = await fetchJSON(
       `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploads}&maxResults=30&key=${API_KEY}`
     );
-
-    if (!playlist.items) throw new Error("No playlist items");
 
     const urls = playlist.items.map(item => {
       const id = item.snippet.resourceId.videoId;
@@ -64,7 +58,7 @@ ${urls.join("\n")}
 
     fs.writeFileSync("sitemap.xml", sitemap);
 
-    console.log("Sitemap generated successfully");
+    console.log("Sitemap created successfully");
   } catch (err) {
     console.error("ERROR:", err.message);
     process.exit(1);
